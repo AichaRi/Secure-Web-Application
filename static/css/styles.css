@@ -1,0 +1,144 @@
+/* General page styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: white;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+/* Center content nicely */
+fieldset {
+    width: 300px;
+    margin: 100px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+/* Form elements */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Labels */
+label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+/* Input fields */
+input{
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input[type="file"] {
+    all: revert;
+}
+
+/* Submit button */
+button {
+    padding: 10px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Button hover effect */
+button:hover {
+    background-color: #0056b3;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 14px;
+    border: none;
+    background-color: #007bff; /* or whatever color you prefer */
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100px;
+}
+
+.btn-delete {
+    display: inline;
+    background-color: #dc3545; /* Bootstrap red */
+    color: white;
+    padding: 10px 20px;
+    font-size: 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px; /* little space between buttons */
+    width: 300px;
+    display: inline-block;
+
+}
+
+.btn-delete:hover {
+    background-color: #c82333; /* darker red on hover */
+}
+
+.btn-cancel {
+    display: inline;
+    background-color: #6c757d; /* Bootstrap gray */
+    color: white;
+    padding: 10px 20px;
+    font-size: 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100px;
+
+
+}
+
+.btn-cancel:hover {
+    background-color: #5a6268; /* darker gray on hover */
+}
+
+
+.button-group {
+    display: flex; gap: 0.5rem; padding: 0; border: none; margin: 0;
+  }
+
+
+/* Error message */
+p {
+    color: red;
+    font-size: 14px;
+}
+
+
+
+
+main {
+    flex-grow: 1;
+    padding: 40px;
+    background-color: #f9f9f9; /* Light grey background */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: flex-start; /* Align content to top */
+}
+
+main > section {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1000px;
+}
+
+/* Headings inside main */
+main h1 {
+    margin-bottom: 20px;
+}
+
