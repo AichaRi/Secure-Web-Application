@@ -1,10 +1,11 @@
-from flask import Flask, render_template, url_for, redirect
+from flask import Flask, render_template, url_for, redirect, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
+import bleach
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -12,6 +13,16 @@ app.config['SECRET_KEY'] = 'thisisasecretkey'
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+
+comments = []  # In-memory comments list, vulnerable
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    # Optionally, add a relationship to user for easier querying
+    user = db.relationship('User', backref='comments')
 
 
 
@@ -75,12 +86,36 @@ def login():
     return render_template('login.html', form=form)
 
 
+comments = []  # global list for simplicity
+#####################################################################################
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    if request.method == 'POST':
+        comment_text = request.form.get('comment')  # Get the comment text
+        if comment_text:
+            # Sanitize the comment text to remove harmful HTML/JS
+            sanitized_comment = bleach.clean(comment_text)
+            new_comment = Comment(text=sanitized_comment, user_id=current_user.id)
 
 
+            # new_comment = Comment(text=comment_text, user_id=current_user.id)
+
+
+
+            db.session.add(new_comment)
+            db.session.commit()
+
+    # Fetch all comments from the database
+    comments = Comment.query.all()
+
+    return render_template('dashboard.html', comments=comments)
+
+
+
+
+
+ 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
@@ -103,7 +138,10 @@ def register():
 
 
 if __name__ == "__main__":
-     app.run(debug=True, port=8000)
+    with app.app_context():
+        db.drop_all()     # Deletes all tables and data
+        db.create_all()  # Ensure tables are created before running the app
+    app.run(debug=True, port=8000)
 
 
 with app.app_context():

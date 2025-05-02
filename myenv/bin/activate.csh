@@ -9,7 +9,7 @@ alias deactivate 'test $?_OLD_VIRTUAL_PATH != 0 && setenv PATH "$_OLD_VIRTUAL_PA
 # Unset irrelevant variables.
 deactivate nondestructive
 
-setenv VIRTUAL_ENV '/home/aicha/Desktop/مقررات/أمن الحاسبات/المشروع/Python-Flask-Authentication-Tutorial-main/myenv'
+setenv VIRTUAL_ENV '/home/aicha/Desktop/مقررات/أمن الحاسبات/المشروع/Python-Flask-Authentication-Tutorial-main/Secure-Web-Application/myenv'
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/"bin":$PATH"

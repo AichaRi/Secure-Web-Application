@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/home/aicha/Desktop/مقررات/أمن الحاسبات/المشروع/Python-Flask-Authentication-Tutorial-main/myenv/bin/python3" "$0" "$@"
+'''exec' "/home/aicha/Desktop/مقررات/أمن الحاسبات/المشروع/Python-Flask-Authentication-Tutorial-main/Secure-Web-Application/myenv/bin/python3" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re

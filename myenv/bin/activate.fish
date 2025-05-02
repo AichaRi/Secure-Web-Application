@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV '/home/aicha/Desktop/مقررات/أمن الحاسبات/المشروع/Python-Flask-Authentication-Tutorial-main/myenv'
+set -gx VIRTUAL_ENV '/home/aicha/Desktop/مقررات/أمن الحاسبات/المشروع/Python-Flask-Authentication-Tutorial-main/Secure-Web-Application/myenv'
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH
