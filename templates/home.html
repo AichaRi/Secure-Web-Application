@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-
+    
+<!--links to both the secure and vulnerable versions of your login and registration.  -->
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,15 +10,24 @@
 
     <title>Home</title>
 </head>
-<h1>Login Authentication System in Flask.</h1>
 
 <body>
     <main>
-
-        <p><a href="{{ url_for('login') }}">Login Page</a></p>
-        <p><a href="{{ url_for('register') }}">Register Page</a></p>
+        <h1>Secure Web Application - Security Vulnerabilities Demo</h1>
+        
+        <div class="secure-section">
+            <h2>Secure Implementation</h2>
+            <p><a href="{{ url_for('login') }}">Secure Login</a> - Protected against SQL injection</p>
+            <p><a href="{{ url_for('register') }}">Secure Registration</a> - Uses bcrypt for password hashing</p>
+        </div>
+        
+        <div class="vulnerable-section" style="background-color: #ffdddd; padding: 15px; border: 2px solid red; margin-top: 20px;">
+            <h2>Vulnerable Implementation (For Demonstration Only)</h2>
+            <p><a href="{{ url_for('login_vulnerable') }}">Vulnerable Login</a> - Contains SQL Injection vulnerability</p>
+            <p><a href="{{ url_for('register_vulnerable') }}">Vulnerable Registration</a> - Uses weak MD5 hashing</p>
+            <p class="warning" style="color: red; font-weight: bold;">Warning: These implementations contain intentional security vulnerabilities for educational purposes.</p>
+        </div>
     </main>
 </body>
-
 
 </html>
