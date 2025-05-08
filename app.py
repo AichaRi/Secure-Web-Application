@@ -14,6 +14,17 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = 'thisisasecretkey'
 
+# securing cookies
+
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    REMEMBER_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+)
+
+
+
+
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
@@ -195,8 +206,13 @@ if __name__ == "__main__":
     with app.app_context():
         db.drop_all()     # Deletes all tables and data
         db.create_all()  # Ensure tables are created before running the app
-    app.run(debug=True, port=8000)
+    app.run(
+        debug=True,
+        port=8000,
+        ssl_context='adhoc'    # self‑signed cert
+    )
 
 
 with app.app_context():
     db.create_all()
+
