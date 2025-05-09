@@ -6,6 +6,7 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
 import bleach
+from forms import LoginForm  
 # Noufs part 
 import hashlib  # For insecure password hashing (MD5)
 import sqlite3  # For raw SQL queries (vulnerable to injection)
@@ -91,19 +92,23 @@ def home():
 
 
 ## access control
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
         user = User.query.filter_by(username=username).first()
         if user and check_password(password, user.password):
             session['user_id'] = user.id
             session['username'] = user.username
-            session['role'] = user.role  
+            session['role'] = user.role
             return redirect(url_for('dashboard'))
         flash('Invalid credentials')
-    return render_template('login.html')
+    return render_template('login.html', form=form)
+
 
 
 
