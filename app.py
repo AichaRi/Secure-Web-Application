@@ -6,7 +6,6 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
 import bleach
-from forms import LoginForm
 # Noufs part 
 import hashlib  # For insecure password hashing (MD5)
 import sqlite3  # For raw SQL queries (vulnerable to injection)
@@ -90,25 +89,16 @@ def home():
     return render_template('home.html')
 
 
-## access control
-  
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        print(f"Login attempt for username: {form.username.data}")
         user = User.query.filter_by(username=form.username.data).first()
         if user:
-            print(f"Found user: {user.username}")
-            print(f"Password hash in database: {user.password}")
-            print(f"Password provided: {form.password.data}")
-            result = bcrypt.check_password_hash(user.password, form.password.data)
-            print(f"Password check result: {result}")
-            if result:
+            if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
+                print(f"Logged in user: {user.username} (role: {user.role})")
                 return redirect(url_for('dashboard'))
-        else:
-            print(f"No user found with username: {form.username.data}")
     return render_template('login.html', form=form)
 
 
@@ -121,10 +111,14 @@ def dashboard():
         comment_text = request.form.get('comment')  # Get the comment text
         if comment_text:
             # Sanitize the comment text to remove harmful HTML/JS
-            #sanitized_comment = bleach.clean(comment_text)
-            #new_comment = Comment(text=sanitized_comment, user_id=current_user.id)
+            # sanitized_comment = bleach.clean(comment_text)
+            # new_comment = Comment(text=sanitized_comment, user_id=current_user.id)
+
 
             new_comment = Comment(text=comment_text, user_id=current_user.id)
+
+
+
             db.session.add(new_comment)
             db.session.commit()
 
@@ -132,6 +126,7 @@ def dashboard():
     comments = Comment.query.all()
 
     return render_template('dashboard.html', comments=comments)
+
 
 
 
@@ -143,40 +138,20 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@ app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
-    print("\n----- Secure Register Route Accessed -----")
 
     if form.validate_on_submit():
-        try:
-            print(f"Registration attempt: Username={form.username.data}, Password=***")
-            
-            # Generate bcrypt hash
-            hashed_password = bcrypt.generate_password_hash(form.password.data)
-            print(f"Generated bcrypt hash (first 20 chars): {str(hashed_password)[:20]}...")
-            
-            # Set role (admin for username 'admin', user otherwise)
-            role = 'admin' if form.username.data == 'admin' else 'user'
-            print(f"Assigning role: {role}")
-            
-            # Create and save user
-            new_user = User(username=form.username.data, password=hashed_password, role=role)
-            db.session.add(new_user)
-            db.session.commit()
-            
-            print(f"User '{form.username.data}' registered successfully")
-            flash('Registration successful! Please log in.', 'success')
-            return redirect(url_for('login'))
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error during registration: {str(e)}")
-            flash(f'Registration failed: {str(e)}', 'danger')
-    else:
-        if form.errors:
-            print(f"Form validation errors: {form.errors}")
-    
+        hashed_password = bcrypt.generate_password_hash(form.password.data)
+        role = 'admin' if form.username.data == 'admin' else 'user'
+        new_user = User(username=form.username.data, password=hashed_password, role=role)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('login'))
+
     return render_template('register.html', form=form)
+
 
 
 
@@ -236,7 +211,6 @@ def login_vulnerable():
                           form_action="/login_vulnerable")
 
 
-
 @app.route('/register_vulnerable', methods=['GET', 'POST'])
 def register_vulnerable():
     print("\n----- Register Vulnerable Route Accessed -----")
@@ -245,7 +219,7 @@ def register_vulnerable():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        print(f"Registration attempt: Username={username}, Password=***")
+        print(f"Registration attempt: Username={username}, Password={password}")
         
         # Check if username exists
         existing_user = User.query.filter_by(username=username).first()
@@ -260,11 +234,7 @@ def register_vulnerable():
         print(f"MD5 Hash: {md5_password}")
         
         try:
-            # Make sure to set a role
-            role = 'admin' if username == 'admin' else 'user'
-            print(f"Assigning role: {role}")
-            
-            new_user = User(username=username, password=md5_password, role=role)
+            new_user = User(username=username, password=md5_password)
             db.session.add(new_user)
             db.session.commit()
             print(f"User '{username}' registered successfully")
@@ -278,19 +248,18 @@ def register_vulnerable():
                           title="Vulnerable Registration", 
                           form_action="/register_vulnerable")
 
-
-
-@app.route('/debug_users')
-def debug_users():
+# Add this debug route
+@app.route('/debug_db')
+def debug_db():
+    # Get all users
     users = User.query.all()
-    output = "<h1>Registered Users</h1><table border='1'>"
-    output += "<tr><th>ID</th><th>Username</th><th>Password (first 20 chars)</th><th>Role</th></tr>"
+    result = '<h1>Database Debug</h1><ul>'
     
     for user in users:
-        output += f"<tr><td>{user.id}</td><td>{user.username}</td><td>{user.password[:20]}...</td><td>{user.role}</td></tr>"
+        result += f'<li>ID: {user.id}, Username: {user.username}, Password: {user.password[:10]}...</li>'
     
-    output += "</table>"
-    return output
+    result += '</ul>'
+    return result
 
 # Secure Admin Page (role-based via username demo)
 # ======== Asia Part: Access Control Demo ========
@@ -319,12 +288,27 @@ if __name__ == "__main__":
     app.run(
         debug=True,
         port=8000,
-        #ssl_context='adhoc'    # self‑signed cert
-      
+            # self‑signed cert
     )
 
 
 with app.app_context():
     db.create_all()
 
-    
+    #Aicha Unsafe Commnts section
+@app.route('/comment_vulnerable', methods=['GET', 'POST'])
+@login_required
+def xss_demo():
+    if request.method == 'POST':
+        comment_text = request.form.get('comment')  # Get the comment text
+        if comment_text:
+            # Do NOT sanitize the comment text – for XSS demo
+            new_comment = Comment(text=comment_text, user_id=current_user.id)
+
+            db.session.add(new_comment)
+            db.session.commit()
+
+    # Fetch all comments from the database
+    comments = Comment.query.all()
+
+    return render_template('xss_demo.html', comments=comments)
