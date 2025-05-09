@@ -50,8 +50,7 @@ Go to the login page and try this as the username:
 
     ' OR '1'='1
 
-    You will be logged in 
-    This shows how SQL injection can .
+    This shows how SQL injection can manipulate queries in the database .
 
 2. Test XSS (Cross-Site Scripting)
 
@@ -69,7 +68,7 @@ Go to the login page and try this as the username:
     Try the same on the normal comments page (/dashboard) after the toggle is off.
     There, scripts are blocked, this shows how sanitizing protects against XSS.
 
-3. Role Toggle Feature
+3. Role Access
 
     In app.py, change this line:
 
