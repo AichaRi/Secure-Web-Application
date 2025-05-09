@@ -19,12 +19,14 @@
             <h2>Secure Implementation</h2>
             <p><a href="{{ url_for('login') }}">Secure Login</a> - Protected against SQL injection</p>
             <p><a href="{{ url_for('register') }}">Secure Registration</a> - Uses bcrypt for password hashing</p>
+            <p><a href="{{ url_for('admin_secure') }}">Secure Admin Page</a> - Access restricted by role</p>
         </div>
         
         <div class="vulnerable-section" style="background-color: #ffdddd; padding: 15px; border: 2px solid red; margin-top: 20px;">
             <h2>Vulnerable Implementation (For Demonstration Only)</h2>
             <p><a href="{{ url_for('login_vulnerable') }}">Vulnerable Login</a> - Contains SQL Injection vulnerability</p>
             <p><a href="{{ url_for('register_vulnerable') }}">Vulnerable Registration</a> - Uses weak MD5 hashing</p>
+            <p><a href="{{ url_for('admin_insecure') }}">Insecure Admin Page</a> - No access control (broken)</p>
             <p class="warning" style="color: red; font-weight: bold;">Warning: These implementations contain intentional security vulnerabilities for educational purposes.</p>
         </div>
     </main>
