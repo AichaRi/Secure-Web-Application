@@ -216,11 +216,14 @@ def register_vulnerable():
     
     return render_template('register_vulnerable.html', form=form)
     
+
 @app.route('/admin')
 @login_required
-@role_required('admin')
 def admin_dashboard():
-    return render_template('admin.html', title='Admin Panel')
+    if current_user.role != 'admin':
+        flash('Access denied: Admins only.', 'danger')
+        return redirect(url_for('dashboard'))
+    return render_template('admin.html')
 
 
 # database creation
