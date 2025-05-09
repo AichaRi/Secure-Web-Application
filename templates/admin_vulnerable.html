@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Secure Admin Dashboard</title>
+    <title>Insecure Admin Page</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <main>
         <section>
-            <h1>Secure Admin Dashboard</h1>
-            <p>Welcome admin. You passed access control.</p>
+            <h1>Insecure Admin Page</h1>
+            <p>This page has NO access control. Any logged-in user can see this.</p>
+            <p style="color: red; font-weight: bold;">⚠️ Vulnerability: Missing Access Control</p>
             <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
         </section>
     </main>

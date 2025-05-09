@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, request
+from flask import Flask, render_template, url_for, redirect, request, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
@@ -54,6 +54,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
+    role = db.Column(db.String(10), nullable=False, default='user')
 
 
 class RegisterForm(FlaskForm):
@@ -96,6 +97,7 @@ def login():
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
+                print(f"Logged in user: {user.username} (role: {user.role})")
                 return redirect(url_for('dashboard'))
     return render_template('login.html', form=form)
 
@@ -128,7 +130,6 @@ def dashboard():
 
 
 
-
  
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
@@ -143,7 +144,8 @@ def register():
 
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data)
-        new_user = User(username=form.username.data, password=hashed_password)
+        role = 'admin' if form.username.data == 'admin' else 'user'
+        new_user = User(username=form.username.data, password=hashed_password, role=role)
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for('login'))
@@ -259,6 +261,25 @@ def debug_db():
     result += '</ul>'
     return result
 
+# Secure Admin Page (role-based via username demo)
+# ======== Asia Part: Access Control Demo ========
+@app.route('/admin_secure')
+@login_required
+def admin_secure():
+    if current_user.role != 'admin':
+        flash('Access denied: Admins only.')
+        return redirect(url_for('dashboard'))
+    return render_template('admin_secure.html')
+
+# Insecure Admin Page (no access control)
+# ======== Asia Part: Vulnerable Route Example ========
+@app.route('/admin_insecure')
+@login_required
+
+def admin_insecure():
+    return render_template('admin_insecure.html')
+
+
 # database creation
 if __name__ == "__main__":
     with app.app_context():
@@ -267,7 +288,7 @@ if __name__ == "__main__":
     app.run(
         debug=True,
         port=8000,
-        ssl_context='adhoc'    # self‑signed cert
+            # self‑signed cert
     )
 
 
