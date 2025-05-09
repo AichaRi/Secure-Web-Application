@@ -261,18 +261,13 @@ def debug_db():
     result += '</ul>'
     return result
 
-# Secure Admin Page (role-based via username demo)
-# ======== Asia Part: Access Control Demo ========
-@app.route('/admin_secure')
-@login_required
-def admin_secure():
-    if current_user.role != 'admin':
-        flash('Access denied: Admins only.')
+@app.route('/admin')
+def admin():
+    if session.get('role') != 'admin':
+        flash('Access denied.')
         return redirect(url_for('dashboard'))
-    return render_template('admin_secure.html')
-
-# Insecure Admin Page (no access control)
-# ======== Asia Part: Vulnerable Route Example ========
+    return render_template('admin.html')
+    
 @app.route('/admin_insecure')
 @login_required
 
