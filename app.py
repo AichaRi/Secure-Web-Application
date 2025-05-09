@@ -160,46 +160,104 @@ def register():
 # Vulnerable login (SQL Injection)
 @app.route('/login_vulnerable', methods=['GET', 'POST'])
 def login_vulnerable():
-    form = LoginForm()
-    if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
+    # Debug message to terminal
+    print("\n----- Login Vulnerable Route Accessed -----")
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        print(f"Login attempt with: Username={username}, Password={password}")
         
         # Hash the password using MD5 (insecure)
         md5_password = hashlib.md5(password.encode()).hexdigest()
+        print(f"MD5 Hash: {md5_password}")
         
         # VULNERABLE to SQL Injection! 
         conn = sqlite3.connect('instance/database.db')
         cursor = conn.cursor()
         query = f"SELECT * FROM user WHERE username = '{username}' AND password = '{md5_password}'"
+        print(f"SQL Query: {query}")
         
-        # Execute vulnerable query
-        result = cursor.execute(query).fetchone()
-        conn.close()
-        
-        if result:
-            user = User.query.get(result[0])  # Get user by ID
-            login_user(user)
-            return redirect(url_for('dashboard'))
+        try:
+            # Execute vulnerable query
+            result = cursor.execute(query).fetchone()
+            print(f"Query Result: {result}")
+            conn.close()
+            
+            if result:
+                print(f"User found in database with ID: {result[0]}")
+                user = User.query.get(result[0])  # Get user by ID
+                print(f"User object: {user}")
+                
+                if user:
+                    print(f"Attempting to log in user: {user.username}")
+                    login_user(user)
+                    print("User logged in successfully, redirecting to dashboard")
+                    return redirect(url_for('dashboard'))
+                else:
+                    print("ERROR: Could not find user object in SQLAlchemy database")
+            else:
+                print("No matching user found in database")
+        except Exception as e:
+            print(f"Exception occurred: {str(e)}")
+            conn.close()
     
-    return render_template('login_vulnerable.html', form=form)
+    # For GET requests or failed login
+    return render_template('login_vulnerable.html', 
+                          title="Vulnerable Login", 
+                          form_action="/login_vulnerable")
 
-# Register with vulnerable password storage (MD5 - insecure)
+
 @app.route('/register_vulnerable', methods=['GET', 'POST'])
 def register_vulnerable():
-    form = RegisterForm()
+    print("\n----- Register Vulnerable Route Accessed -----")
     
-    if form.validate_on_submit():
-        # Hash password with MD5 (INSECURE!)
-        md5_password = hashlib.md5(form.password.data.encode()).hexdigest()
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
         
-        new_user = User(username=form.username.data, password=md5_password)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('login_vulnerable'))
+        print(f"Registration attempt: Username={username}, Password={password}")
+        
+        # Check if username exists
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            print(f"Username '{username}' already exists")
+            return render_template('register_vulnerable.html', 
+                                  title="Vulnerable Registration", 
+                                  form_action="/register_vulnerable")
+        
+        # Hash password with MD5 (INSECURE!)
+        md5_password = hashlib.md5(password.encode()).hexdigest()
+        print(f"MD5 Hash: {md5_password}")
+        
+        try:
+            new_user = User(username=username, password=md5_password)
+            db.session.add(new_user)
+            db.session.commit()
+            print(f"User '{username}' registered successfully")
+            return redirect(url_for('login_vulnerable'))
+        except Exception as e:
+            print(f"Exception during registration: {str(e)}")
+            db.session.rollback()
     
-    return render_template('register_vulnerable.html', form=form)
+    # For GET requests
+    return render_template('register_vulnerable.html', 
+                          title="Vulnerable Registration", 
+                          form_action="/register_vulnerable")
 
+# Add this debug route
+@app.route('/debug_db')
+def debug_db():
+    # Get all users
+    users = User.query.all()
+    result = '<h1>Database Debug</h1><ul>'
+    
+    for user in users:
+        result += f'<li>ID: {user.id}, Username: {user.username}, Password: {user.password[:10]}...</li>'
+    
+    result += '</ul>'
+    return result
 
 # database creation
 if __name__ == "__main__":
