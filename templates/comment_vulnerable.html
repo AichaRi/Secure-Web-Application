@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>XSS Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+</head>
+<body>
+    <h1>🚨 XSS Vulnerability Demo</h1>
+    <p>This page displays comments <strong>without any sanitization</strong>. Any embedded scripts will run.</p>
+    
+    <a href="{{ url_for('dashboard') }}">Back to Safe Dashboard</a>
+    <hr>
+
+    {% for c in comments %}
+        <p><strong>{{ c.user.username }}:</strong> {{ c.text|safe }}</p>  <!-- Unsafe rendering -->
+    {% endfor %}
+    <section>
+        <form method="POST">
+            <textarea name="comment" placeholder="Write your comment here..."></textarea>
+            <button type="submit">Submit Comment</button>
+        </form>
+    
+    </section>
+    
+    <section>
+    
+        <h3>All Comments:</h3>
+        {% for c in comments %}
+            <p><strong>{{ c.user.username }}:</strong> {{ c.text|safe }}</p>  <!-- XSS allowed for demo -->
+        {% endfor %}
+    </section>
+
+
+
+</body>
+</html>
