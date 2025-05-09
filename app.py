@@ -10,6 +10,19 @@ import bleach
 import hashlib  # For insecure password hashing (MD5)
 import sqlite3  # For raw SQL queries (vulnerable to injection)
 #end of the imports from noufs part
+from functools import wraps
+from flask import abort
+
+def role_required(role):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.is_authenticated or current_user.role != role:
+                abort(403)
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = 'thisisasecretkey'
@@ -54,6 +67,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default='user')  # added
 
 
 class RegisterForm(FlaskForm):
@@ -192,13 +206,21 @@ def register_vulnerable():
     if form.validate_on_submit():
         # Hash password with MD5 (INSECURE!)
         md5_password = hashlib.md5(form.password.data.encode()).hexdigest()
-        
+        role = request.form.get('role', 'user')  # part of access control
+        new_user = User(username=form.username.data, password=hashed_password, role=role)
+
         new_user = User(username=form.username.data, password=md5_password)
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for('login_vulnerable'))
     
     return render_template('register_vulnerable.html', form=form)
+    
+@app.route('/admin')
+@login_required
+@role_required('admin')
+def admin_dashboard():
+    return render_template('admin.html', title='Admin Panel')
 
 
 # database creation
