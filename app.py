@@ -89,17 +89,22 @@ def home():
     return render_template('home.html')
 
 
+
+## access control
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user:
-            if bcrypt.check_password_hash(user.password, form.password.data):
-                login_user(user)
-                print(f"Logged in user: {user.username} (role: {user.role})")
-                return redirect(url_for('dashboard'))
-    return render_template('login.html', form=form)
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and check_password(password, user.password):
+            session['user_id'] = user.id
+            session['username'] = user.username
+            session['role'] = user.role  
+            return redirect(url_for('dashboard'))
+        flash('Invalid credentials')
+    return render_template('login.html')
+
 
 
 comments = []  # global list for simplicity
@@ -271,13 +276,14 @@ def admin_secure():
         return redirect(url_for('dashboard'))
     return render_template('admin_secure.html')
 
-# Insecure Admin Page (no access control)
-# ======== Asia Part: Vulnerable Route Example ========
-@app.route('/admin_insecure')
-@login_required
 
-def admin_insecure():
-    return render_template('admin_insecure.html')
+# access control
+@app.route('/admin')
+def admin():
+    if 'role' not in session or session['role'] != 'admin':
+        flash('Access denied.')
+        return redirect(url_for('dashboard'))
+    return render_template('admin.html')
 
 
 # database creation
@@ -288,7 +294,7 @@ if __name__ == "__main__":
     app.run(
         debug=True,
         port=8000,
-            # self‑signed cert
+           
     )
 
 
