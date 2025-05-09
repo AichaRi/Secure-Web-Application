@@ -54,10 +54,9 @@ Go to the login page and try this as the username:
 
 2. Test XSS (Cross-Site Scripting)
 
-    toggle it on
+    uncomment the part for sanitizeing the input
     after logging in:
    
-
     Post this as a comment:
 
     <script>alert('XSS demo!');</script>
