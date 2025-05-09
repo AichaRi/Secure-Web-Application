@@ -6,7 +6,11 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
 import bleach
+<<<<<<< HEAD
 from forms import LoginForm
+=======
+from forms import LoginForm  
+>>>>>>> d631fe7d679932896e362218033644850df9ef91
 # Noufs part 
 import hashlib  # For insecure password hashing (MD5)
 import sqlite3  # For raw SQL queries (vulnerable to injection)
@@ -90,12 +94,20 @@ def home():
     return render_template('home.html')
 
 
+<<<<<<< HEAD
 ## access control
   
+=======
+
+## access control
+
+
+>>>>>>> d631fe7d679932896e362218033644850df9ef91
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
+<<<<<<< HEAD
         print(f"Login attempt for username: {form.username.data}")
         user = User.query.filter_by(username=form.username.data).first()
         if user:
@@ -109,7 +121,20 @@ def login():
                 return redirect(url_for('dashboard'))
         else:
             print(f"No user found with username: {form.username.data}")
+=======
+        username = form.username.data
+        password = form.password.data
+        user = User.query.filter_by(username=username).first()
+        if user and check_password(password, user.password):
+            session['user_id'] = user.id
+            session['username'] = user.username
+            session['role'] = user.role
+            return redirect(url_for('dashboard'))
+        flash('Invalid credentials')
+>>>>>>> d631fe7d679932896e362218033644850df9ef91
     return render_template('login.html', form=form)
+
+
 
 
 comments = []  # global list for simplicity
@@ -302,13 +327,14 @@ def admin_secure():
         return redirect(url_for('dashboard'))
     return render_template('admin_secure.html')
 
-# Insecure Admin Page (no access control)
-# ======== Asia Part: Vulnerable Route Example ========
-@app.route('/admin_insecure')
-@login_required
 
-def admin_insecure():
-    return render_template('admin_insecure.html')
+# access control
+@app.route('/admin')
+def admin():
+    if 'role' not in session or session['role'] != 'admin':
+        flash('Access denied.')
+        return redirect(url_for('dashboard'))
+    return render_template('admin.html')
 
 
 # database creation
@@ -319,8 +345,12 @@ if __name__ == "__main__":
     app.run(
         debug=True,
         port=8000,
+<<<<<<< HEAD
         #ssl_context='adhoc'    # self‑signed cert
       
+=======
+           
+>>>>>>> d631fe7d679932896e362218033644850df9ef91
     )
 
 
