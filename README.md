@@ -1,28 +1,28 @@
-## Python Flask Authentication
+# 🛡️ Flask Secure Demo App
 
-This repository contains the code used in the Python Flask Authentication [video](https://www.youtube.com/watch?v=71EU8gnZqZQ) uploaded on [my YouTube channel](https://www.youtube.com/watch?v=71EU8gnZqZQ).
+This is a security-focused Flask web application that demonstrates:
+- Secure user login and registration diasllowing SQL injection
+- Role-Based Access Control (RBAC) 
+- Secure comment posting with XSS protection
+- Insecure comment route without XSS protection
+- Raw SQL and hashed password demos
 
-## Installation
+## 🚀 Features
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the required dependencies
+- 🔐 User Authentication using `Flask-Login`
+- 🧂 Password hashing using `bcrypt` or insecure `MD5`
+- ✍️ Safe and Unsafe Comment Forms 
+- 👮 Role-Based Access Control (`admin` vs `user`)
+- 🔄 Admin RBAC Toggle (`ENABLE_RBAC`)
 
-##### Windows:
-```zsh
-pip install -r requirements.txt 
-```
+---
 
-##### macOS/Linux:
-```zsh
-pip3 install -r requirements.txt
-```
 
-## Usage
+## ⚙️ Configuration
 
-##### Windows:
-```zsh
-python app.py
-```
-##### macOS/Linux:
-```zsh
-python3 app.py
-```
+Inside `app.py`:
+
+```python
+ENABLE_RBAC = True       # Set to False to allow all users into /admin page
+
+
