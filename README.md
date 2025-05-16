@@ -1,4 +1,4 @@
-# 🛡️ Flask Secure Demo App
+# 🛡️ Building a Secure Web Application 
 
 This is a security-focused Flask web application that demonstrates:
 - Secure user login and registration diasllowing SQL injection
