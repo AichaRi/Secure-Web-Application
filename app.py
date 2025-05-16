@@ -10,35 +10,40 @@ import bleach
 import hashlib  # For insecure password hashing (MD5)
 import sqlite3  # For raw SQL queries (vulnerable to injection)
 #end of the imports from noufs part
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = 'thisisasecretkey'
 
-# securing cookies
+# Add this at the top of your app.py file (right after imports)
 
+# Force database recreation on startup
+with app.app_context():
+    print("Dropping all tables...")
+    db.drop_all()
+    print("Creating all tables...")
+    db.create_all()
+    print("Database schema created successfully")
+
+    # Ensure admin user exists
+    admin = User.query.filter_by(username='admin').first()
+    if not admin:
+        print("Creating admin user...")
+        admin_password = bcrypt.generate_password_hash('adminpassword')
+        admin_user = User(username='admin', password=admin_password, role='admin')
+        db.session.add(admin_user)
+        db.session.commit()
+        print("Admin user created successfully")
+
+# securing cookies
 app.config.update(
     SESSION_COOKIE_SECURE=True,
     REMEMBER_COOKIE_SECURE=True,
     SESSION_COOKIE_HTTPONLY=True,
 )
 
-
-
-
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
-
-comments = []  # In-memory comments list, vulnerable
-
-class Comment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
-    # Optionally, add a relationship to user for easier querying
-    user = db.relationship('User', backref='comments')
-
-
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -55,6 +60,15 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
     role = db.Column(db.String(10), nullable=False, default='user')
+
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    # Optionally, add a relationship to user for easier querying
+    user = db.relationship('User', backref='comments')
 
 
 class RegisterForm(FlaskForm):
@@ -102,8 +116,6 @@ def login():
     return render_template('login.html', form=form)
 
 
-comments = []  # global list for simplicity
-#####################################################################################
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
@@ -111,14 +123,8 @@ def dashboard():
         comment_text = request.form.get('comment')  # Get the comment text
         if comment_text:
             # Sanitize the comment text to remove harmful HTML/JS
-            # sanitized_comment = bleach.clean(comment_text)
-            # new_comment = Comment(text=sanitized_comment, user_id=current_user.id)
-
-
-            new_comment = Comment(text=comment_text, user_id=current_user.id)
-
-
-
+            sanitized_comment = bleach.clean(comment_text)
+            new_comment = Comment(text=sanitized_comment, user_id=current_user.id)
             db.session.add(new_comment)
             db.session.commit()
 
@@ -128,9 +134,6 @@ def dashboard():
     return render_template('dashboard.html', comments=comments)
 
 
-
-
- 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
@@ -138,7 +141,7 @@ def logout():
     return redirect(url_for('login'))
 
 
-@ app.route('/register', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
 
@@ -151,10 +154,6 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
-
-
-
-
 
 
 # Noufs part 
@@ -234,7 +233,7 @@ def register_vulnerable():
         print(f"MD5 Hash: {md5_password}")
         
         try:
-            new_user = User(username=username, password=md5_password)
+            new_user = User(username=username, password=md5_password, role='user')  # Add role parameter
             db.session.add(new_user)
             db.session.commit()
             print(f"User '{username}' registered successfully")
@@ -248,6 +247,7 @@ def register_vulnerable():
                           title="Vulnerable Registration", 
                           form_action="/register_vulnerable")
 
+
 # Add this debug route
 @app.route('/debug_db')
 def debug_db():
@@ -256,10 +256,11 @@ def debug_db():
     result = '<h1>Database Debug</h1><ul>'
     
     for user in users:
-        result += f'<li>ID: {user.id}, Username: {user.username}, Password: {user.password[:10]}...</li>'
+        result += f'<li>ID: {user.id}, Username: {user.username}, Password: {user.password[:10]}..., Role: {user.role}</li>'
     
     result += '</ul>'
     return result
+
 
 # Secure Admin Page (role-based via username demo)
 # ======== Asia Part: Access Control Demo ========
@@ -271,44 +272,51 @@ def admin_secure():
         return redirect(url_for('dashboard'))
     return render_template('admin_secure.html')
 
+
 # Insecure Admin Page (no access control)
 # ======== Asia Part: Vulnerable Route Example ========
 @app.route('/admin_insecure')
 @login_required
-
 def admin_insecure():
     return render_template('admin_insecure.html')
 
 
-# database creation
-if __name__ == "__main__":
-    with app.app_context():
-        db.drop_all()     # Deletes all tables and data
-        db.create_all()  # Ensure tables are created before running the app
-    app.run(
-        debug=True,
-        port=8000,
-            # self‑signed cert
-    )
-
-
-with app.app_context():
-    db.create_all()
-
-    #Aicha Unsafe Commnts section
+#Aicha Unsafe Comments section
 @app.route('/comment_vulnerable', methods=['GET', 'POST'])
 @login_required
-def xss_demo():
+def comment_vulnerable():
     if request.method == 'POST':
         comment_text = request.form.get('comment')  # Get the comment text
         if comment_text:
             # Do NOT sanitize the comment text – for XSS demo
             new_comment = Comment(text=comment_text, user_id=current_user.id)
-
             db.session.add(new_comment)
             db.session.commit()
 
     # Fetch all comments from the database
     comments = Comment.query.all()
 
-    return render_template('xss_demo.html', comments=comments)
+    return render_template('comment_vulnerable.html', comments=comments)
+
+
+# Initialize database when running the application directly
+if __name__ == "__main__":
+    with app.app_context():
+        # This will recreate all tables from scratch
+        db.drop_all()
+        db.create_all()
+        
+        # Optionally, create an admin user for testing
+        admin_exists = User.query.filter_by(username='admin').first()
+        if not admin_exists:
+            admin_password = bcrypt.generate_password_hash('adminpassword')
+            admin_user = User(username='admin', password=admin_password, role='admin')
+            db.session.add(admin_user)
+            db.session.commit()
+            print("Admin user created successfully")
+    
+    # Run the app
+    app.run(
+        debug=True,
+        port=5000,  # Changed to match the port in your error log
+    )
